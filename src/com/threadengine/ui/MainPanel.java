@@ -1,5 +1,6 @@
 package com.threadengine.ui;
 
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -7,13 +8,14 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 import javax.swing.JPanel;
 
-import org.w3c.dom.css.Rect;
+
 
 import com.threadengine.constants.Constants;
 import com.threadengine.listeners.GameEventListener;
@@ -21,6 +23,8 @@ import com.threadengine.objects.Ball;
 import com.threadengine.objects.Bricks;
 import com.threadengine.objects.Pad;
 import com.threadengine.objects.Shapes;
+
+
 
 public class MainPanel extends JPanel {
 
@@ -40,6 +44,9 @@ public class MainPanel extends JPanel {
 	private Pad pad;
 	private boolean gameOn;
 	private String message;
+	private State gameState;
+	private MainMenu mainMenu;
+	
 	// private boolean gameOver;
 
 //	private Ball ball;
@@ -65,6 +72,9 @@ public class MainPanel extends JPanel {
 		this.ball = new Ball(450, 600);
 
 		this.gameOn = true;
+		this.gameState = State.MENU;
+		this.mainMenu = new MainMenu(this);
+		
 		// this.gameOver = false;
 		this.pad = new Pad(400, 700);
 		this.loop = new MainLoop(this);
@@ -72,8 +82,11 @@ public class MainPanel extends JPanel {
 		this.balls = new ArrayList<Shapes>();
 		this.bricks = new ArrayList<Bricks>();
 		addKeyListener(new GameEventListener(this));
+		addMouseListener(mainMenu);
 
 	}
+
+	
 
 	private void initLayout() {
 
@@ -84,7 +97,10 @@ public class MainPanel extends JPanel {
 
 	public void render() {
 		if (gameOn) {
-			update();
+			if(this.gameState == State.PLAY) {
+				update();	
+			}
+			
 		}
 		repaint();
 	}
@@ -137,6 +153,7 @@ public class MainPanel extends JPanel {
 			Rectangle bricksRectangle = brk.getRect();
 			if (brk.isVisible()) {
 				if (ballRectangle.intersects(bricksRectangle)) {
+					
 					this.dirY *= -1;
 					 //this.dirX *= -1;
 					brk.setVisible(false);
@@ -149,10 +166,10 @@ public class MainPanel extends JPanel {
 					// System.out.println("Collision Ball Vs Brick");
 				}
 			}
-		}
+			}
 
 	}
-
+	
 	private void ballPadCollision() {
 
 		Rectangle ballRectangle = ball.getRect();
@@ -205,7 +222,15 @@ public class MainPanel extends JPanel {
 		// g.setColor(myColor);
 		drawAll(g);
 		drawGameOverStats(g);
+		drawMainMenu(g);
 
+	}
+
+	private void drawMainMenu(Graphics g) {
+		if(this.gameState == State.MENU || this.gameState == State.HELP) {
+			this.mainMenu.renderMenu(g);
+		}
+		
 	}
 
 	private void drawGameOverStats(Graphics g) {
@@ -306,14 +331,15 @@ public class MainPanel extends JPanel {
 		if (key == KeyEvent.VK_LEFT) {
 			pad.setSpeed(-3);
 		}
-
 		if (key == KeyEvent.VK_RIGHT) {
 			pad.setSpeed(3);
 		}
-		
 		if (key == KeyEvent.VK_SPACE) {
-		
+		this.gameState = State.PLAY;
 		}
+		if (key == KeyEvent.VK_ESCAPE) {
+			System.exit(1);
+			}
 	}
 
 	public void keyReleased(KeyEvent e) {
@@ -327,5 +353,13 @@ public class MainPanel extends JPanel {
 			pad.setSpeed(0);
 		}
 
+	}
+	
+	public State getGameState() {
+		return gameState;
+	}
+
+	public void setGameState(State gameState) {
+		this.gameState = gameState;
 	}
 }
